@@ -16,6 +16,7 @@ public class Raccoon extends Animal{
         System.out.println("너굴너굴");
     }
 
+    //자식인 라쿤만의 기능
     public void bite() {
         System.out.println("분노한 너구리가 깨물기 공격을 시작합니다.");
     }
