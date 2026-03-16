@@ -1,6 +1,8 @@
 package com.wanted.crud.course.model.dao;
 
 import com.wanted.crud.course.model.dto.CourseDTO;
+import com.wanted.crud.course.model.dto.CourseSectionDTO;
+import com.wanted.crud.course.model.dto.SectionDTO;
 import com.wanted.crud.global.utils.QueryUtil;
 
 import java.sql.Connection;
@@ -24,6 +26,7 @@ public class CourseDAO {
     *  */
 
     private final Connection connection;
+
 
     public CourseDAO(Connection connection) {
         this.connection = connection;
@@ -54,4 +57,100 @@ public class CourseDAO {
         return courseList;
     }
 
+    public Long save(CourseDTO newCourse) throws SQLException {
+        String query = QueryUtil.getQuery("course.save");
+        try (PreparedStatement pstmt = connection.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS)) {
+            pstmt.setLong(1, newCourse.getAuthorId());
+            pstmt.setString(2, newCourse.getTitle());
+            pstmt.setString(3, newCourse.getDescription());
+            pstmt.setString(4, newCourse.getStatus());
+
+            //dml 구문은 executeUpdate를 통해 query를 실행한다.
+            //결과값은 정수 자료형 즉 영향을 받은 행의 갯수가 리턴된다.
+            int affectedRows = pstmt.executeUpdate();
+
+            if (affectedRows > 0) {
+                ResultSet rs = pstmt.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getLong(1);
+                }
+            }
+        }
+        return null;
+    }
+
+    public int delete(long id) throws SQLException {
+        String query = QueryUtil.getQuery("course.delete");
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setLong(1, id);
+            return pstmt.executeUpdate();
+        }
+
+    }
+
+    public CourseDTO find(long id) throws SQLException {
+        String query = QueryUtil.getQuery("course.findById");
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setLong(1, id);
+
+            //select의 결과를 ResultSet 객체로 반환됨!!
+            ResultSet rset = pstmt.executeQuery();
+
+            if (rset.next()) {
+                return new CourseDTO(
+                        rset.getLong("course_id"),
+                        rset.getLong("author_id"),
+                        rset.getString("title"),
+                        rset.getString("description"),
+                        rset.getString("status")
+                );
+            }
+        }
+        return null;
+    }
+
+    //코스+섹션으로 이뤄진 데이터 반환
+    public CourseSectionDTO findCourseWithSections(long courseId) throws SQLException {
+        String query = QueryUtil.getQuery("course.findCourseWithSections");
+
+        //null로 초기화, 이후 대입 예정
+        CourseSectionDTO courseSectionDTO = null;
+
+        try (PreparedStatement pstmt = connection.prepareStatement(query)) {
+            pstmt.setLong(1, courseId);
+
+            ResultSet rset = pstmt.executeQuery();
+            while (rset.next()) {
+                /*comment
+                *  1개의 코스에슨 여러 개의 섹션이 있다.
+                *  1개의 강의 정보만 생성한다.*/
+                if (courseSectionDTO == null) {
+                    courseSectionDTO = new CourseSectionDTO(
+                            rset.getLong("course_id"),
+                            rset.getLong("author_id"),
+                            rset.getString("title"),
+                            rset.getString("description"),
+                            rset.getString("status")
+                    );
+                }
+                /*comment
+                *  LEFT JOIN이기 때문에 section_id는 null일 수 있다.
+                *  getLong(), getInt()는 DB의 null을 그대로 담지 못하며 null 대신 0으로 처리하여 반환해준다.
+                *  따라서 wasNull() 메소드로 확인해야 한다.*/
+                Long sectionId = rset.getLong("section_id");
+
+                if (!rset.wasNull()) {
+                    SectionDTO section = new SectionDTO(
+                            sectionId,
+                            rset.getLong("section_course_id"),
+                            rset.getString("section_title"),
+                            rset.getInt("section_order")
+                    );
+                    courseSectionDTO.getSections().add(section);
+                }
+            }
+        }
+
+        return courseSectionDTO;
+    }
 }
