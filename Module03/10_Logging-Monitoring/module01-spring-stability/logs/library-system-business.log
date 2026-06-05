@@ -1,0 +1,15 @@
+2026-04-29 12:20:27.735 [9878cb42] c.o.s.s.logging.service.LoanService - [s2][LoanService] 도서 대출 요청 - 회원 ID: 1, 도서 ID: 1
+2026-04-29 12:20:27.758 [9878cb42] c.o.s.s.logging.service.LoanService - [s2][LoanService] 도서 대출 완료 - 대출 ID: 1, 회원: 김도서, 도서: Spring Boot 완벽 가이드, 반납 예정일: 2026-05-13T12:20:27.756598200
+2026-04-29 12:20:27.800 [41c30ee2] c.o.s.s.logging.service.LoanService - [s2][LoanService] 도서 대출 요청 - 회원 ID: 1, 도서 ID: 2
+2026-04-29 12:20:27.804 [41c30ee2] c.o.s.s.logging.service.LoanService - [s2][LoanService] 도서 대출 완료 - 대출 ID: 2, 회원: 김도서, 도서: Java 프로그래밍 입문, 반납 예정일: 2026-05-13T12:20:27.803539400
+2026-04-29 12:20:27.861 [ada9d9a2] c.o.s.s.logging.service.LoanService - [s2][LoanService] 대출 연장 요청 - 대출 ID: 1, 연장 일수: 7일
+2026-04-29 12:20:27.864 [ada9d9a2] c.o.s.s.logging.service.LoanService - [s2][LoanService] 대출 연장 완료 - 대출 ID: 1, 기존 반납일: 2026-05-13T12:20:27.756598, 새 반납일: 2026-05-20T12:20:27.756598
+2026-04-29 12:20:27.888 [3bca64a1] c.o.s.s.logging.service.LoanService - [s2][LoanService] 도서 반납 요청 - 대출 ID: 1
+2026-04-29 12:20:27.890 [3bca64a1] c.o.s.s.logging.service.LoanService - [s2][LoanService] 정상 반납 완료 - 대출 ID: 1, 회원: 김도서, 도서: Spring Boot 완벽 가이드
+2026-04-29 12:20:27.920 [dfd6ae7c] c.o.s.s.logging.service.LoanService - [s2][LoanService] 연체 대출 현황 - 총 0건의 연체 대출 발견
+2026-04-29 12:20:27.943 [b9e4d3f8] c.o.s.s.logging.service.LoanService - [s2][LoanService] 연체 대출 일괄 처리 시작
+2026-04-29 12:20:27.944 [b9e4d3f8] c.o.s.s.logging.service.LoanService - [s2][LoanService] 연체 대출 일괄 처리 완료 - 처리 건수: 0건
+2026-04-29 12:20:28.073 [602997f4] c.o.s.s.logging.service.LoanService - [s2][LoanService] 도서 대출 요청 - 회원 ID: 999, 도서 ID: 1
+2026-04-29 12:20:28.107 [d70dffcd] c.o.s.s.logging.service.LoanService - [s2][LoanService] 도서 대출 요청 - 회원 ID: 1, 도서 ID: 999
+2026-04-29 12:20:28.129 [4eb4c2ac] c.o.s.s.logging.service.LoanService - [s2][LoanService] 도서 반납 요청 - 대출 ID: 1
+2026-04-29 12:20:28.158 [23b7243b] c.o.s.s.logging.service.LoanService - [s2][LoanService] 대출 연장 요청 - 대출 ID: 2, 연장 일수: 30일
