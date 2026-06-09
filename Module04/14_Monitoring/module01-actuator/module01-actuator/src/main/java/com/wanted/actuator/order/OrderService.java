@@ -44,9 +44,12 @@ public class OrderService {
     public OrderResponse createOrder(CreateOrderRequest request) {
 
         //타이머 동작 시작
-        Timer.Sample sample = shopMetrics.startTimer();
+        Timer.Sample sample = shopMetrics.startTimer(); //매트릭용
+        long startedAt = System.nanoTime(); //로그 기록용
 
         try {
+            //주문 안에 들어있는 제품 개수 확인
+            log.info("event=order_create_started itemTypes={}", request.items().size());
             Order order = new Order();
             long orderAmount = 0;
 
@@ -62,11 +65,23 @@ public class OrderService {
             Order savedOrder = orderRepository.save(order);
             //주문 성공 시 기록할 Metric
             shopMetrics.recordCreatedOrder(savedOrder.getItems().size(), orderAmount); //주문 수량, 가겨
-            log.info("주문이 생성되었습니다. orderId={}", savedOrder.getId());
+            log.info(
+                    "event=order_create_succeeded orderId={} itemTypes={} amount={} durationMs={}",
+                    savedOrder.getId(),
+                    savedOrder.getItems().size(),
+                    orderAmount,
+                    elapsedMillis(startedAt)
+            );
             return OrderResponse.from(savedOrder);
         } catch (RuntimeException exception) {
             //주문 실패 시 생성할 Metric
             shopMetrics.recordFailedOrder(exception);
+            log.warn(
+                    "event=order_create_failed exceptionType={} message=\"{}\" durationMs={}",
+                    exception.getClass().getSimpleName(),
+                    exception.getMessage(),
+                    elapsedMillis(startedAt)
+            );
             throw exception;
         } finally {
             //위에서 진행된 타이머를 종료
@@ -85,5 +100,9 @@ public class OrderService {
     private Product findProduct(Long id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
+    }
+
+    private long elapsedMillis(long startedAt) {
+        return (System.nanoTime() - startedAt) / 1_000_000;
     }
 }
