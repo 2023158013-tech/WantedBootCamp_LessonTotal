@@ -49,6 +49,21 @@ public class LocalCacheConfig {
                         .removalListener(((key, value, cause) ->
                                 System.out.printf("cache removed: key=%s, cause=%s%n", key, cause)))
         );
+
+        /*comment
+        *  현재 cacheManager 설정은 모든 종류의 캐시가 5분 만료 시간을 가질 수 있다.
+        *  하지만 캐시의 종류에 따라 TTL 설정은 달라져야 한다.
+        *  */
+
+        //jr. 커스텀 가능하다 ↓
+//        cacheManager.registerCustomCache(
+//                "PRODUCT_ALL",
+//                Caffeine.newBuilder()
+//                        .maximumSize(5_000)
+//                        .expireAfterAccess(Duration.ofHours(5))
+//                        .build()
+//        );
+
         return cacheManager;
     }
 }

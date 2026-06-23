@@ -3,8 +3,7 @@ package com.wanted.cache.product;
 import com.wanted.cache.cache.CacheNames;
 import com.wanted.cache.support.SlowSimulator;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,5 +89,44 @@ public class ProductService {
         slowSimulator.searchQueryLatency();
 
         return searchProducts(keyword, category, minPrice, maxPrice);
+    }
+
+    //CachePut은 캐시 히트 여부와 관계 없이 메서드 본문을 실행한다.
+    //jr. 기존 캐시 갱신: 기존 데이터에 접근하기 위해선 key가 필요함(이거보단 캐시 삭제가 더 중요함)
+    @CachePut(key = "#id")
+    public Product refreshProduct(Long id) {
+        slowSimulator.detailQueryLatency();
+        return findProduct(id);
+    }
+
+    //id값에 해당하는 캐시 데이터를 무효화(제거)한다.
+    //jr. 키값을 적어서 어떤 캐시 데이터를 삭제할지 지정
+    @CacheEvict(key = "#id")
+    public void evictProduct(Long id) {
+        //jr. 특별히 뭐 할 거 없이 딱 무효화만 해보기
+    }
+
+    /*comment
+    *  @Caching은 여러 캐시 작업을 한 번에 묶을 수 있다.
+    *  재고 변경 등에 의한 캐시 재설정은 put보다는 evict를 사용해서 기존 캐시를 날리고 새롭게 만드는 방법을 훨씬 많이 쓰게 된다.
+    *  evict allEntries = true는 PRODUCT_SEARCH  캐시 전체를 비우는 명령어이다.
+    *  해당 명령어는 단순하고 안전하지만, PRODUCT_SEARCH 캐시가 많을수록 재생성 비용이 커질 수 있다.(Trade-off 발생)
+    *  jr. ↑한번에 지우고 오래된 데이터를 보여줄 가능성이 없기 때문에(DB와 캐시의 싱크가 안맞을 일이 없음).
+    *  jr. 덮어쓰는건 제대로 됐는지 잘 모르기 때문에 아예 날리고 다시 넣음(evict) - 초기화하면 다시 다 깔아야하는 트레이드오프*/
+    @Transactional //DML구문: 상품 재고 변경
+    @Caching(
+            put = @CachePut(key = "#id"), //jr. 위에 작성한 @CachePut의 키값을 덮어 씌움
+            evict = @CacheEvict(cacheNames = CacheNames.PRODUCT_SEARCH, allEntries = true) //jr. 캐시 무효화로 공간 자체를 날림
+            //jr. allEntries: 맥시멈 사이즈를 만들면 캐시 공간에 하나의 캐시 데이터를 엔트리라고 부름. 그 엔트리들을 전부 날리겠다는 의미.
+    )
+    public Product changeStock(Long id, int stock) {
+        //jr. 재고 변경 전 먼저 변경할 상품 찾기
+        //재고 변경을 위해 변경할 product 조회
+        Product product = findProduct(id);
+
+        //jr. setter 사용은 지양한다 -> 엔티티 내부에 메서드로 처리
+        product.changeStock(stock);
+
+        return product;
     }
 }
